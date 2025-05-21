@@ -1,11 +1,12 @@
 streamlit
 torch
 langchain
-PyPDF2
-huggingface_hub
-pandas
 langchain-community
 langchain-experimental
-langchain-groq
 langchain-together
+langchain-groq
 sentence-transformers
+faiss-cpu
+PyPDF2
+huggingface-hub
+pandas
