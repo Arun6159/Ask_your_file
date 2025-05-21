@@ -10,3 +10,4 @@ faiss-cpu
 PyPDF2
 huggingface-hub
 pandas
+tabulate
