@@ -29,7 +29,7 @@ from langchain_groq import ChatGroq
 load_dotenv()
 
 groq_api_key = st.secrets["GROQ_API_KEY"]
-together_api_key = st.secrets["TOGETHER_API_KEY"]
+openai_api_key = st.secrets["OPENAI_API_KEY"]
 
 os.environ["GROQ_API_KEY"] = groq_api_key
 os.environ["TOGETHER_API_KEY"] = together_api_key
@@ -73,7 +73,7 @@ Answer:
 
 """
                 )
-                llm = ChatOpenAI( model_name = "gpt-3.5-turbo",temperature =0.1)
+                llm = ChatOpenAI( model_name = "gpt-3.5-turbo",temperature =0.1, openai_api_key = openai_api_key)
                 
                 chain = RetrievalQA.from_chain_type(llm , 
                                                     chain_type="stuff",
