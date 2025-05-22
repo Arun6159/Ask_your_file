@@ -67,6 +67,7 @@ if file is not None:
                     template= """
 You are a helpful assistant. Use the provided context to answer the Question below.
 Don't mention the content explicitly(keep it a secret). Be concise and answer in bullet points if necessary.
+If any question irrelevant from the context is given tell "I dont know sorry..."
 Context: {context}
 Question: {question}
 Answer:
