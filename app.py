@@ -2,27 +2,37 @@ import sys
 import torch
 if not hasattr(torch._classes, '__path__'):
     torch._classes.__path__ = []
+import os
+
+from dotenv import load_dotenv
 
 import streamlit as st
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.embeddings import HuggingFaceEmbeddings
-from langchain.vectorstores import FAISS
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.vectorstores import FAISS
 from PyPDF2 import PdfReader
-from langchain.document_loaders import PyPDFLoader
-import os
+# from langchain_community.document_loaders import PyPDFLoader
+from langchain.chains.question_answering import load_qa_chain
 import io
-from langchain_together import Together
+from langchain.chat_models import ChatOpenAI
+# from langchain_together import Together
 from langchain.chains import RetrievalQA
 from langchain.schema import Document
 from langchain.prompts import PromptTemplate
-from huggingface_hub import InferenceClient
-from langchain_community.llms import HuggingFaceHub
+# from huggingface_hub import InferenceClient
+# from langchain_community.llms import HuggingFaceHub
 from langchain_experimental.agents import create_csv_agent
 from langchain_groq import ChatGroq
-import pandas as pd
+# from langchain_community.llms import OpenAI
+# import pandas as pd
 
-os.environ["TOGETHER_API_KEY"] = 'b1a6f3735456dc5126f77a85bf9c5823bd253d8c3bf85730302d45cb03e6fafe'
+load_dotenv()
 
+groq_api_key = st.secrets["GROQ_API_KEY"]
+together_api_key = st.secrets["TOGETHER_API_KEY"]
+
+os.environ["GROQ_API_KEY"] = groq_api_key
+os.environ["TOGETHER_API_KEY"] = together_api_key
 
 st.set_page_config(page_title= "Ask your PDF")
 st.header("Ask your File 📄")
@@ -48,50 +58,43 @@ if file is not None:
             # st.write(documents)
             embedding = HuggingFaceEmbeddings(model_name = "all-MiniLM-L6-V2" )
             vectorstore = FAISS.from_documents(documents,embedding)
-
-            
-
-            llm = Together(model='meta-llama/Llama-3.3-70B-Instruct-Turbo-Free', 
-                        temperature=0, 
-                        max_tokens=300
-                        )
-            
             retriever = vectorstore.as_retriever()
-
-            
-            prompt = PromptTemplate(
-                input_variables= ["context", "question"],
-                template= """
-        You are a helpful assistant. Assume that you are a Q & A bot and you only give answers to the given question based on the context given.
-        You should not let the user know that you are using this context. Tell like you know the answer.
-        context: {context}
-        Question:{question}
-        Answer in bullet points briefly and clearly.
-        """)
-
-            rag_chain = RetrievalQA.from_chain_type(llm = llm,
-                                                    retriever = retriever,
-                                                    return_source_documents = True,
-                                                    chain_type = 'stuff',
-                                                    chain_type_kwargs = {'prompt': prompt}
-                                                    )
-            
             query = st.text_input("Enter your question in ur pdf :")
-            
-            if query:
-                with st.spinner("Generating best possible answer..."):
-                    result = rag_chain(query)
-                    
 
-                st.subheader("Answer:")
-                st.write(result['result'])
+            if query:
+                prompt = PromptTemplate(
+                    input_variables= ["context", "question"],
+                    template= """
+You are a helpful assistant. Use the provided context to answer the Question below.
+Don't mention the content explicitly(keep it a secret). Be concise and answer in bullet points if necessary.
+Context: {context}
+Question: {question}
+Answer:
+
+"""
+                )
+                llm = ChatOpenAI( model_name = "gpt-3.5-turbo",temperature =0.1)
+                
+                chain = RetrievalQA.from_chain_type(llm , 
+                                                    chain_type="stuff",
+                                                    retriever = retriever,
+                                                     chain_type_kwargs = {"prompt": prompt},
+                                                     
+                                                     )
+                docs = retriever.get_relevant_documents(query)
+                with st.spinner("Generating best possible answer..."):
+
+                
+                    response = chain.run(query)
+                    st.write(response)
+
 
 
 
         elif file.type == 'text/csv':
                 query = st.text_input("Enter your question in ur CSV file :")
                 llm = ChatGroq(
-        groq_api_key= "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",
+        groq_api_key= groq_api_key,
         model_name="llama-3.3-70b-versatile"
     )
                 if query:
@@ -106,18 +109,6 @@ if file is not None:
 
     
 
-                
-
-            # df = pd.read_csv(io.StringIO(file.getvalue().decode("utf-8")))
-            # rows = df.to_dict(orient='records')
-            # text_chunks = []
-            # for row in rows:
-            #     row_text = "\n".join([f"{k}: {v}" for k , v in row.items()])
-            #     text_chunks.append(row_text)
-            # text = "\n\n".join(text_chunks)
-
-            # # text = df.to_string(index=False)
-            # st.write(text)
 
 
     
