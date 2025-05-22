@@ -62,10 +62,11 @@ if file is not None:
             prompt = PromptTemplate(
                 input_variables= ["context", "question"],
                 template= """
-        You are a helpful assistant. Use the context below to answer the given question. Dont mention anything about the context(keep it secret).
+        You are a helpful assistant. Assume that you are a Q & A bot and you only give answers to the given question based on the context given.
+        You should not let the user know that you are using this context. Tell like you know the answer.
         context: {context}
         Question:{question}
-        Answer in bullet points briefly and clearly only relevant to the question given.
+        Answer in bullet points briefly and clearly.
         """)
 
             rag_chain = RetrievalQA.from_chain_type(llm = llm,
