@@ -32,7 +32,7 @@ groq_api_key = st.secrets["GROQ_API_KEY"]
 openai_api_key = st.secrets["OPENAI_API_KEY"]
 
 os.environ["GROQ_API_KEY"] = groq_api_key
-os.environ["TOGETHER_API_KEY"] = together_api_key
+os.environ["OPENAI_API_KEY"] = openai_api_key
 
 st.set_page_config(page_title= "Ask your PDF")
 st.header("Ask your File 📄")
